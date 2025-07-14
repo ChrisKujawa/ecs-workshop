@@ -27,7 +27,7 @@ public class Main {
             runtimeSec = seconds;
         }
         final var loops = Math.max(runtimeSec / 5, 1);
-        System.out.printf("Will loop for %s times a 5 seconds.\n", loops);
+        System.out.printf("Will loop for %d times a 5 seconds.\n", loops);
 
         System.out.println("Attempt to acquire lock...");
         try (final FileOutputStream fileOutputStream = new FileOutputStream(path + "/lockfile");
@@ -43,8 +43,7 @@ public class Main {
                     long currentTimeMillis = System.currentTimeMillis();
                     var buffer = new UnsafeBuffer(ByteBuffer.allocate(256));
                     buffer.putStringUtf8(0, "Current time: " + currentTimeMillis + "\n");
-
-                    System.out.println("Write into: " + filePath + " " + currentTimeMillis);
+                    System.out.printf("[%d/%d]: Write %d into: %s.\n", i+1, loops, currentTimeMillis, filePath);
                     appendChannel.write(buffer.byteBuffer(), 0);
                 }
                 Thread.sleep(5000);

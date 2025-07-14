@@ -18,8 +18,17 @@ public class Main {
         if (path == null) {
             throw new IllegalArgumentException("Please set CAMUNDA_PATH environment variable pointing to the folder to write.");
         }
-
         System.out.println("Will write into: " + path);
+
+        final var runtimeSecEnv = System.getenv("CAMUNDA_RUNTIME_SEC");
+        var runtimeSec = 500l;
+        if (runtimeSecEnv != null) {
+            long seconds = Long.parseLong(runtimeSecEnv);
+            runtimeSec = seconds;
+        }
+        final var loops = Math.max(runtimeSec / 5, 1);
+        System.out.printf("Will loop for %s times a 5 seconds.\n", loops);
+
         System.out.println("Attempt to acquire lock...");
         try (final FileOutputStream fileOutputStream = new FileOutputStream(path + "/lockfile");
              final var channel = fileOutputStream.getChannel()) {
@@ -27,7 +36,7 @@ public class Main {
             final var lock = channel.lock();
             System.out.println("Lock acquired!");
 
-            for (int i =0; i < 5; i++) {
+            for (int i =0; i < loops; i++) {
                 final var filePath = path + "/append-file.txt";
                 try (var appendChannel = FileChannel.open(Path.of(filePath), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                     // write to channel

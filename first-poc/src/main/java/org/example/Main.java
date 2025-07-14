@@ -10,6 +10,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import static java.lang.System.exit;
+
 public class Main {
     public static void main(String[] args) {
         final var path = System.getenv("CAMUNDA_PATH");
@@ -20,11 +22,12 @@ public class Main {
         System.out.println("Will write into: " + path);
         System.out.println("Attempt to acquire lock...");
         try (final FileOutputStream fileOutputStream = new FileOutputStream(path + "/lockfile");
-             final var channel = fileOutputStream.getChannel();
-             final var lock = channel.lock()) {
+             final var channel = fileOutputStream.getChannel()) {
+            // lock inside the try (so finalize will not close it)
+            final var lock = channel.lock();
             System.out.println("Lock acquired!");
 
-            while (true) {
+            for (int i =0; i < 5; i++) {
                 final var filePath = path + "/append-file.txt";
                 try (var appendChannel = FileChannel.open(Path.of(filePath), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                     // write to channel
@@ -37,7 +40,8 @@ public class Main {
                 }
                 Thread.sleep(5000);
             }
-
+            throw new Error("");
+//            lock.release();
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
